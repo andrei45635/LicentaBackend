@@ -55,7 +55,6 @@ public class AuthController {
         return uri.toString();
     }
 
-    //TODO: refresh token
     @GetMapping(value = "get-user-code")
     public String getSpotifyUserCode(@RequestParam("code") String userCode, HttpServletResponse response) throws IOException {
         System.out.println("User code: " + userCode);
@@ -80,7 +79,6 @@ public class AuthController {
         return spotifyApi.getAccessToken();
     }
 
-    //TODO: save user in DB
     @GetMapping(value = "get-user-info")
     public UserDTO getUserInfo() {
         final GetCurrentUsersProfileRequest getUsersProfileRequest = spotifyApi.getCurrentUsersProfile().build();

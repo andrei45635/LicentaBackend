@@ -3,8 +3,6 @@ package com.example.licentabackend.entities;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.util.Set;
-
 @Entity(name = "\"user\"")
 @Table(name="\"user\"")
 @Data
@@ -21,13 +19,6 @@ public class User {
 
     @Column(name="username", length=55, unique = true, nullable = false)
     private String username;
-
-    @Column(name="access_token", length=255, nullable = false, unique = true)
-    private String accessToken;
-
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-    @ToString.Exclude
-    private Set<Playlist> playlists;
 
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     @ToString.Exclude

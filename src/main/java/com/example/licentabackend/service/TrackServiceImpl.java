@@ -14,6 +14,7 @@ import se.michaelthelin.spotify.requests.data.playlists.AddItemsToPlaylistReques
 import se.michaelthelin.spotify.requests.data.playlists.CreatePlaylistRequest;
 import se.michaelthelin.spotify.requests.data.playlists.GetListOfCurrentUsersPlaylistsRequest;
 import se.michaelthelin.spotify.requests.data.search.simplified.SearchTracksRequest;
+import se.michaelthelin.spotify.requests.data.tracks.GetTrackRequest;
 import se.michaelthelin.spotify.requests.data.users_profile.GetCurrentUsersProfileRequest;
 
 import java.io.IOException;
@@ -117,28 +118,29 @@ public class TrackServiceImpl implements TrackService {
     }
 
     @Override
-    public TrackDTO findTrackById(String accessToken, String trackId) {
+    public TrackDTO findTrackById(String accessToken, String trackId) throws SpotifyWebApiException {
         spotifyApi.setAccessToken(accessToken);
         try {
-            final SearchTracksRequest request = spotifyApi.searchTracks(trackId)
+            final GetTrackRequest request = spotifyApi.getTrack(trackId)
                     .market(CountryCode.US)
-                    .limit(1)
                     .build();
-            Track foundTrack = request.execute().getItems()[0];
-            System.out.println("Found track: " + foundTrack.getName());
-            TrackDTO trackDTO = new TrackDTO();
-            trackDTO.setTrackId(foundTrack.getId());
-            trackDTO.setName(foundTrack.getName());
-            trackDTO.setAlbum(foundTrack.getAlbum().getName());
-            trackDTO.setArtist(foundTrack.getArtists()[0].getName());
-            trackDTO.setImages(new ImageDTO(foundTrack.getAlbum().getImages()[0].getHeight(),
-                    foundTrack.getAlbum().getImages()[0].getUrl(),
-                    foundTrack.getAlbum().getImages()[0].getWidth()));
-            return trackDTO;
-        } catch (Exception e) {
-            System.out.println("Error in getTracks method in TrackServiceImpl line 48: " + e.getMessage());
+            Track track = request.execute();
+            if(!Objects.isNull(track)) {
+                TrackDTO trackDTO = new TrackDTO();
+                trackDTO.setTrackId(track.getId());
+                trackDTO.setName(track.getName());
+                trackDTO.setAlbum(track.getAlbum().getName());
+                trackDTO.setArtist(track.getArtists()[0].getName());
+                trackDTO.setImages(new ImageDTO(track.getAlbum().getImages()[0].getHeight(),
+                        track.getAlbum().getImages()[0].getUrl(),
+                        track.getAlbum().getImages()[0].getWidth()));
+                return trackDTO;
+            } else {
+                return null;
+            }
+        } catch (SpotifyWebApiException | IOException | ParseException exception) {
+            throw new SpotifyWebApiException("Track with ID " + trackId + " not found");
         }
-        return null;
     }
 
     @Override
@@ -163,7 +165,9 @@ public class TrackServiceImpl implements TrackService {
     public boolean addSongsToPlaylist(String accessToken, String playlistId, List<String> tracks) {
         spotifyApi.setAccessToken(accessToken);
         try {
+            System.out.println("tracks: " + tracks);
             String[] uris = tracks.stream().map(id -> "spotify:track:" + id).toArray(String[]::new);
+            System.out.println("URIs: " + Arrays.toString(uris));
             AddItemsToPlaylistRequest addItemsToPlaylistRequest = spotifyApi.addItemsToPlaylist(playlistId, uris).build();
             addItemsToPlaylistRequest.execute();
             return true;
@@ -185,8 +189,6 @@ public class TrackServiceImpl implements TrackService {
             String[] parts = song.split(" - ");
             String artist = parts[0];
             String track  = parts[1];
-            String score  = parts[2];
-            System.out.println("Artist track: " + artist + " - " + track + " - " + score);
             TrackDTO foundTrack = getTracksByArtistAndName(accessToken, artist, track);
             if (foundTrack != null) {
                 tracks.add(foundTrack);
@@ -239,5 +241,38 @@ public class TrackServiceImpl implements TrackService {
             System.out.println("Error in getTracksByArtistAndName method: " + e.getMessage());
         }
         return null;
+    }
+
+    @Override
+    public PlaylistDTO getSuggestionsEmotionsRomanian(Map<String, List<String>> suggestions) {
+        List<String> songs = suggestions.get("songs");
+        String accessToken = suggestions.get("access_token").get(0);
+        System.out.println("Songs: " + songs);
+        List<TrackDTO> tracks = new ArrayList<>();
+        for(String song: songs) {
+            String[] parts = song.split(" - ");
+            String artist = parts[0];
+            String track  = parts[1];
+            TrackDTO foundTrack = getTracksByArtistAndName(accessToken, artist, track);
+            if (foundTrack != null) {
+                tracks.add(foundTrack);
+                System.out.println("Found track: " + foundTrack);
+            } else {
+                System.out.println("Track not found for artist: " + artist + ", track: " + track);
+            }
+        }
+        System.out.println("Tracks: " + tracks);
+        List<String> allIds = tracks.stream().map(TrackDTO::getTrackId).collect(Collectors.toList());
+        Playlist playlist = createPlaylist(accessToken, getCurrentUserId(accessToken), "Songs similar to your taste");
+        addSongsToPlaylist(accessToken, playlist.getId(), allIds);
+        System.out.println("Playlist ID: " + playlist.getId());
+        System.out.println("Playlist :" + playlist);
+        System.out.println("Songs in the playlist: " + playlist.getTracks());
+        PlaylistDTO playlistDTO = new PlaylistDTO();
+        playlistDTO.setName(playlist.getName());
+        playlistDTO.setId(playlist.getId());
+        playlistDTO.setUri(playlist.getUri());
+        playlistDTO.setDescription(playlist.getDescription());
+        return playlistDTO;
     }
 }

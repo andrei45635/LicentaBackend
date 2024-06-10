@@ -20,8 +20,6 @@ public class UserToken {
     private Integer id;
     @Column(name = "access_token",length = 2048, nullable = false)
     private String accessToken;
-    @Column(name = "refresh_token",length = 2048, nullable = false)
-    private String refreshToken;
     @Column(name = "expires_in", nullable = false)
     private Integer expiresIn;
     @Column(name = "token_type", nullable = false)

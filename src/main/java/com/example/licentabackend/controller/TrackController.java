@@ -2,15 +2,11 @@ package com.example.licentabackend.controller;
 
 import com.example.licentabackend.dtos.PlaylistDTO;
 import com.example.licentabackend.dtos.TrackDTO;
-import com.example.licentabackend.entities.RecommendationRequest;
 import com.example.licentabackend.service.TrackService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import se.michaelthelin.spotify.SpotifyApi;
 import se.michaelthelin.spotify.SpotifyHttpManager;
-import se.michaelthelin.spotify.model_objects.specification.Playlist;
 import se.michaelthelin.spotify.model_objects.specification.PlaylistSimplified;
 
 import java.net.URI;
@@ -58,5 +54,10 @@ public class TrackController {
     @PostMapping("/get-suggestions-emotions-eng")
     public PlaylistDTO getSuggestionsEmotionsEnglish(@RequestBody Map<String, List<String>> suggestions) {
         return trackService.getSuggestionsEmotionsEnglish(suggestions);
+    }
+
+    @PostMapping("/get-suggestions-emotions-ro")
+    public PlaylistDTO getSuggestionsEmotionsRomanian(@RequestBody Map<String, List<String>> suggestions) {
+        return trackService.getSuggestionsEmotionsRomanian(suggestions);
     }
 }

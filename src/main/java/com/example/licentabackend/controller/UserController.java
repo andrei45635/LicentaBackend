@@ -14,9 +14,4 @@ public class UserController {
     public UserController(UserService userService) {
         this.userService = userService;
     }
-
-//    @PostMapping("/register")
-//    public void registerUser(@RequestBody UserDTO userDTO) {
-//        userService.findOrCreateUser(userDTO);
-//    }
 }
