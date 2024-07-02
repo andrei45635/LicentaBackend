@@ -92,7 +92,10 @@ public class TrackServiceImpl implements TrackService {
         allIds.addAll(euclideanIds);
         allIds.addAll(pearsonIds);
 
-        Playlist playlist = createPlaylist(accessToken.get(0), getCurrentUserId(accessToken.get(0)), "Songs similar to your taste");
+        String playlistName = "Diverse Similarity Playlist";
+        String playlistDescription = "A unique blend of tracks selected using cosine, Euclidean, and Pearson similarity measures. Enjoy a diverse listening experience!";
+
+        Playlist playlist = createPlaylist(accessToken.get(0), getCurrentUserId(accessToken.get(0)), playlistName, playlistDescription);
         addSongsToPlaylist(accessToken.get(0), playlist.getId(), allIds);
 
         PlaylistDTO playlistDTO = new PlaylistDTO();
@@ -144,13 +147,13 @@ public class TrackServiceImpl implements TrackService {
     }
 
     @Override
-    public Playlist createPlaylist(String accessToken, String userId, String playlistName) {
+    public Playlist createPlaylist(String accessToken, String userId, String playlistName, String playlistDescription) {
         spotifyApi.setAccessToken(accessToken);
         try {
-            final CreatePlaylistRequest createPlaylistRequest = spotifyApi.createPlaylist(getCurrentUserId(accessToken), "Songs similar to your taste")
+            final CreatePlaylistRequest createPlaylistRequest = spotifyApi.createPlaylist(getCurrentUserId(accessToken), playlistName)
                     .collaborative(false)
                     .public_(true)
-                    .description("Songs similar to your taste. Enjoy!")
+                    .description(playlistDescription)
                     .build();
             Playlist playlist = createPlaylistRequest.execute();
             System.out.println("Playlist created: " + playlist.getName());
@@ -159,6 +162,62 @@ public class TrackServiceImpl implements TrackService {
             System.out.println("Error in getTracks method in TrackServiceImpl line 48: " + e.getMessage());
         }
         return null;
+    }
+
+    private String generateTitleBasedOnEmotionEnglish(String emotion) {
+        return switch (emotion.toLowerCase()) {
+            case "amazement" -> "Amazement Tunes";
+            case "calmness" -> "Calm Vibes";
+            case "joyful activation" -> "Joyful Beats";
+            case "nostalgia" -> "Nostalgic Hits";
+            case "power" -> "Power Tracks";
+            case "sadness" -> "Sad Songs";
+            case "solemnity" -> "Solemn Melodies";
+            case "tenderness" -> "Tender Tunes";
+            case "tension" -> "Tense Beats";
+            default -> "Emotion-based Playlist";
+        };
+    }
+
+    private String generateDescriptionBasedOnEmotionEnglish(String emotion) {
+        return switch (emotion.toLowerCase()) {
+            case "amazement" -> "Experience awe with these amazing tracks!";
+            case "calmness" -> "Relax and unwind with these calming songs.";
+            case "joyful activation" -> "Feel the joy with these upbeat tracks!";
+            case "nostalgia" -> "Take a trip down memory lane with these nostalgic hits.";
+            case "power" -> "Feel empowered with these powerful songs.";
+            case "sadness" -> "Embrace your sadness with these melancholic tunes.";
+            case "solemnity" -> "Reflect with these solemn melodies.";
+            case "tenderness" -> "Feel the warmth with these tender tracks.";
+            case "tension" -> "Get through the tension with these intense beats.";
+            default -> "A playlist curated based on your current mood.";
+        };
+    }
+
+    private String generateTitleBasedOnEmotionRomanian(String emotion) {
+        return switch (emotion.toLowerCase()) {
+            case "tristețe" -> "Cântece Triste";
+            case "surpriză" -> "Melodii Surprinzătoare";
+            case "frică" -> "Piese de Frică";
+            case "furie" -> "Cântece de Furie";
+            case "neutru" -> "Cântece Neutre";
+            case "încredere" -> "Piese de Încredere";
+            case "bucurie" -> "Cântece de Bucurie";
+            default -> "Playlist pe bază de emoții";
+        };
+    }
+
+    private String generateDescriptionBasedOnEmotionRomanian(String emotion) {
+        return switch (emotion.toLowerCase()) {
+            case "tristețe" -> "Însoțește-ți tristețea cu aceste melodii melancolice.";
+            case "surpriză" -> "Bucură-te de aceste piese surprinzătoare!";
+            case "frică" -> "Melodii care te fac să simți frică.";
+            case "furie" -> "Scoate-ți furia cu aceste cântece intense.";
+            case "neutru" -> "O selecție de melodii neutre pentru orice stare.";
+            case "încredere" -> "Simte încrederea cu aceste piese puternice.";
+            case "bucurie" -> "Umple-te de bucurie cu aceste melodii vesele.";
+            default -> "Un playlist creat pe baza stării tale actuale.";
+        };
     }
 
     @Override
@@ -198,8 +257,10 @@ public class TrackServiceImpl implements TrackService {
             }
         }
         System.out.println("Tracks: " + tracks);
+        String playlistTitle = generateTitleBasedOnEmotionEnglish(predictedEmotion);
+        String playlistDescription = generateDescriptionBasedOnEmotionEnglish(predictedEmotion);
         List<String> allIds = tracks.stream().map(TrackDTO::getTrackId).collect(Collectors.toList());
-        Playlist playlist = createPlaylist(accessToken, getCurrentUserId(accessToken), "Songs similar to your taste");
+        Playlist playlist = createPlaylist(accessToken, getCurrentUserId(accessToken), playlistTitle, playlistDescription);
         addSongsToPlaylist(accessToken, playlist.getId(), allIds);
         System.out.println("Playlist ID: " + playlist.getId());
         System.out.println("Playlist :" + playlist);
@@ -245,7 +306,9 @@ public class TrackServiceImpl implements TrackService {
 
     @Override
     public PlaylistDTO getSuggestionsEmotionsRomanian(Map<String, List<String>> suggestions) {
+        System.out.println("Suggestions: " + suggestions);
         List<String> songs = suggestions.get("songs");
+        String predictedEmotion = suggestions.get("emotion").get(0);
         String accessToken = suggestions.get("access_token").get(0);
         System.out.println("Songs: " + songs);
         List<TrackDTO> tracks = new ArrayList<>();
@@ -262,8 +325,10 @@ public class TrackServiceImpl implements TrackService {
             }
         }
         System.out.println("Tracks: " + tracks);
+        String playlistTitle = generateTitleBasedOnEmotionRomanian(predictedEmotion);
+        String playlistDescription = generateDescriptionBasedOnEmotionRomanian(predictedEmotion);
         List<String> allIds = tracks.stream().map(TrackDTO::getTrackId).collect(Collectors.toList());
-        Playlist playlist = createPlaylist(accessToken, getCurrentUserId(accessToken), "Songs similar to your taste");
+        Playlist playlist = createPlaylist(accessToken, getCurrentUserId(accessToken), playlistTitle, playlistDescription);
         addSongsToPlaylist(accessToken, playlist.getId(), allIds);
         System.out.println("Playlist ID: " + playlist.getId());
         System.out.println("Playlist :" + playlist);

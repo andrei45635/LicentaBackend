@@ -96,3 +96,7 @@ jacocoTestReport {
     }
 }
 
+bootJar {
+    archiveFileName = 'licenta-backend.jar'
+}
+

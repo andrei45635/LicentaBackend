@@ -14,7 +14,7 @@ public interface TrackService {
     List<TrackDTO> getTracks(String accessToken, String trackId);
     PlaylistDTO getSuggestionsSimilarity(Map<String, List<String>> suggestions);
     TrackDTO findTrackById(String accessToken, String trackId) throws SpotifyWebApiException;
-    Playlist createPlaylist(String accessToken, String userId, String playlistName);
+    Playlist createPlaylist(String accessToken, String userId, String playlistName, String playlistDescription);
     boolean addSongsToPlaylist(String accessToken, String playlistId, List<String> tracks);
     PlaylistDTO getSuggestionsEmotionsEnglish(Map<String, List<String>> suggestions);
     TrackDTO getTracksByArtistAndName(String accessToken, String artist, String name);
