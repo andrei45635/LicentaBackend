@@ -27,8 +27,8 @@ import java.util.stream.Collectors;
 public class AuthController {
     private static final URI redirectURI = SpotifyHttpManager.makeUri("http://localhost:8080/auth/spotify/get-user-code");
     private String code = "";
-    private static final String clientId = "a43ef21f342246aab5ccbd5a7447eab9";
-    private static final String clientSecret = "2625f2d2090640508b6a33e9d438b0c6";
+    private static final String clientId = "clientId";
+    private static final String clientSecret = "secret";
 
     private static final SpotifyApi spotifyApi = new SpotifyApi.Builder()
             .setClientId(clientId)
